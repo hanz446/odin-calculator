@@ -4,8 +4,9 @@ class Calculator {
         this.secondaryDisplay = document.getElementById("secondary-display");
         this.buttonContainer = document.getElementById("button-container");
 
-        this.currentNum = [];
-        this.currOperation = [];
+        this.currentNum = "";
+        this.currOperation = "";
+        this.storedNum = "";
 
         this.buttonContainer.addEventListener("click", (event) => this.handleClick(event));
     }
@@ -15,8 +16,8 @@ class Calculator {
 
         switch (identifier[0]) {
             case "n":
-                this.currentNum.push(identifier[1]);
-                this.mainDisplay.textContent = this.currentNum.join("");
+                this.currentNum += identifier[1];
+                this.mainDisplay.textContent = this.currentNum;
                 break;
             case "o":
                 this.handleOperations(identifier[1]);
@@ -28,34 +29,36 @@ class Calculator {
     }
 
     handleOperations(identifier) {
-        if (typeof this.currOperation[1] === "string" && identifier !== "equals") {
-            this.currOperation.pop();
-        } else {
-            this.currOperation.push(Number(this.currentNum.join("")));
+        if (this.currentNum && identifier !== "equals") {
+            this.storedNum = Number(this.currentNum);
         }
 
         switch (identifier) {
             case "plus":
-                this.currOperation.push("+")
+                this.currOperation = "+";
+                this.currentNum = "";
                 this.updateDisplay()
                 break;
             case "subtract":
-                this.currOperation.push("-")
+                this.currOperation = "-";
+                this.currentNum = "";
                 this.updateDisplay()
                 break;
             case "multiply":
-                this.currOperation.push("\u00d7")
+                this.currOperation = "\u00d7";
+                this.currentNum = "";
                 this.updateDisplay()
                 break;
             case "divide":
-                this.currOperation.push("\u00F7")
+                this.currOperation = "\u00F7";
+                this.currentNum = "";
                 this.updateDisplay()
                 break;
             case "equals":
                 this.currentNum = this.operate();
                 this.secondaryDisplay.textContent = "";
-                this.mainDisplay.textContent = this.currentNum.join("");
-                this.currOperation = []
+                this.mainDisplay.textContent = Number(this.currentNum);
+                this.currOperation = "";
                 break;
         }
     }
@@ -63,43 +66,39 @@ class Calculator {
     handleMisc(identifier) {
         switch (identifier) {
             case "clear":
-                this.currentNum = [];
-                this.currOperation = [];
-                this.secondaryDisplay.textContent = "";
-                this.mainDisplay.textContent = "0";
+                this.currentNum = "";
+                this.currOperation = "";
+                this.storedNum = "";
+                this.updateDisplay();
                 break;
             case "backspace":
-                this.currentNum.pop();
+                this.currentNum = this.currentNum.slice(0, -1);
                 if (this.currentNum.length === 0) {
                     this.mainDisplay.textContent = "0";
                 } else {
-                    this.mainDisplay.textContent = this.currentNum.join("");
+                    this.mainDisplay.textContent = this.currentNum;
                 }
                 
         }
     }
 
     updateDisplay() {
-        this.secondaryDisplay.textContent = this.currOperation.join(" ");
-        this.currentNum = [];
+        this.secondaryDisplay.textContent = this.storedNum + " " + this.currOperation;
         this.mainDisplay.textContent = "0";
     }
 
     operate() {
-        switch (this.currOperation[1]) {
+        switch (this.currOperation) {
             case "+":
-                return String(Number(this.currOperation[0]) + Number(this.currentNum.join(""))).split("");
-                break;
+                return Number(this.storedNum) + Number(this.currentNum);
             case "-":
-                return String(Number(this.currOperation[0]) - Number(this.currentNum.join(""))).split("");
-                break;
+                return Number(this.storedNum) - Number(this.currentNum);
             case "\u00d7":
-                return String(Number(this.currOperation[0]) * Number(this.currentNum.join(""))).split("");
-                break;
+                return Number(this.storedNum) * Number(this.currentNum);
             case "\u00F7":
-                return String(Number(this.currOperation[0]) / Number(this.currentNum.join(""))).split("");
-                break;
+                return Number(this.storedNum) / Number(this.currentNum);
         }
+        return this.currentNum;
     }
 }
 
