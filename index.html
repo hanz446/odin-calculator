@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odin Calculator</title>
+    <link href="styles.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div id="main-container">
+        <div id="display-container">
+            <div id="secondary-display"></div>
+            <div id="main-display">0</div>
+        </div>
+        <div id="button-container">
+            <div class="left-side">
+                <button type="button" id="m-backspace" class="number button">CE</button>
+                <button type="button" id="m-clear" class="number button">AC</button>
+                <button type="button" id="m-percent" class="number button">%</button>
+                <button type="button" id="n-9" class="number button">9</button>
+                <button type="button" id="n-8" class="number button">8</button>
+                <button type="button" id="n-7" class="number button">7</button>
+                <button type="button" id="n-6" class="number button">6</button>
+                <button type="button" id="n-5" class="number button">5</button>
+                <button type="button" id="n-4" class="number button">4</button>
+                <button type="button" id="n-3" class="number button">3</button>
+                <button type="button" id="n-2" class="number button">2</button>
+                <button type="button" id="n-1" class="number button">1</button>
+                <button type="button" id="m-toggle" class="number button">+/-</button>
+                <button type="button" id="n-0" class="number button">0</button>
+                <button type="button" id="m-decimal" class="number button">.</button>
+            </div>
+            <div class="right-side">
+                <button type="button" id="o-divide" class="operator button">&divide;</button>
+                <button type="button" id="o-multiply" class="operator button">&times;</button>
+                <button type="button" id="o-subtract" class="operator button">-</button>
+                <button type="button" id="o-plus" class="operator button">+</button>
+                <button type="button" id="o-equals" class="operator button">=</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
