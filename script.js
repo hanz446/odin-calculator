@@ -7,98 +7,181 @@ class Calculator {
         this.currentNum = "";
         this.currOperation = "";
         this.storedNum = "";
+        this.consecutiveEquals = false;
+        this.consecutiveOps = false;
+        this.errorDisplayed = false;
+        this.temp = 0;
+
+        this.operations = {
+            plus: "+",
+            subtract: "-",
+            multiply: "\u00d7",
+            divide: "\u00F7",
+        }
 
         this.buttonContainer.addEventListener("click", (event) => this.handleClick(event));
     }
 
     handleClick(event) {
-        const identifier = event.target.id.split("-")
+        if (!event.target.classList.contains('button')) return;
 
-        switch (identifier[0]) {
-            case "n":
-                this.currentNum += identifier[1];
-                this.mainDisplay.textContent = this.currentNum;
-                break;
-            case "o":
-                this.handleOperations(identifier[1]);
-                break;
-            case "m":
-                this.handleMisc(identifier[1]);
-                break;
-        }
-    }
+        const dataType = event.target.dataset.type;
+        const dataValue = event.target.dataset.value;
 
-    handleOperations(identifier) {
-        if (this.currentNum && identifier !== "equals") {
-            this.storedNum = Number(this.currentNum);
-        }
-
-        switch (identifier) {
-            case "plus":
-                this.currOperation = "+";
-                this.currentNum = "";
-                this.updateDisplay()
+        switch (dataType) {
+            case "number":
+                this.handleNumber(dataValue);
                 break;
-            case "subtract":
-                this.currOperation = "-";
-                this.currentNum = "";
-                this.updateDisplay()
+            case "operator":
+                this.handleOperations(dataValue);
                 break;
-            case "multiply":
-                this.currOperation = "\u00d7";
-                this.currentNum = "";
-                this.updateDisplay()
-                break;
-            case "divide":
-                this.currOperation = "\u00F7";
-                this.currentNum = "";
-                this.updateDisplay()
+            case "misc":
+                this.handleMisc(dataValue);
                 break;
             case "equals":
-                this.currentNum = this.operate();
-                this.secondaryDisplay.textContent = "";
-                this.mainDisplay.textContent = Number(this.currentNum);
-                this.currOperation = "";
+                this.handleEquals();
                 break;
         }
     }
 
-    handleMisc(identifier) {
-        switch (identifier) {
+    handleNumber(dataValue) {
+        if (this.consecutiveEquals || this.errorDisplayed) {
+            this.reset();
+        }
+        if (this.currentNum.length < 12) this.currentNum = this.currentNum + dataValue;
+        this.updateDisplay(this.currentNum, "bypass")
+    }
+
+    handleOperations(dataValue) {
+        this.consecutiveEquals = false;
+
+        if (this.currentNum === "-") this.currentNum = "-1";
+
+        if (this.currentNum !== "") {
+            this.consecutiveOps ? this.storedNum = this.operate(this.storedNum, this.currentNum) : this.storedNum = this.currentNum;
+        }
+        
+        this.currOperation = this.operations[dataValue];
+        this.currentNum = "";
+        this.consecutiveOps = true;
+        this.updateDisplay("0", "operation")
+    }
+
+    handleMisc(dataValue) {
+        if (this.consecutiveEquals) {
+            this.currentNum = "";
+            this.consecutiveEquals = false;
+        }
+        switch (dataValue) {
             case "clear":
-                this.currentNum = "";
-                this.currOperation = "";
-                this.storedNum = "";
+                this.reset();
                 this.updateDisplay();
                 break;
             case "backspace":
                 this.currentNum = this.currentNum.slice(0, -1);
-                if (this.currentNum.length === 0) {
-                    this.mainDisplay.textContent = "0";
+                this.updateDisplay(this.currentNum, "bypass");
+                break;
+            case "toggle":
+                if (this.currentNum[0] === "-") {
+                    this.currentNum = this.currentNum.slice(1);
                 } else {
-                    this.mainDisplay.textContent = this.currentNum;
+                    this.currentNum = "-" + this.currentNum;
                 }
-                
+                this.updateDisplay(this.currentNum, "bypass");
+                break;
+            case "percent":
+                this.currentNum = String(this.currentNum / 100);
+                this.updateDisplay(this.currentNum, "bypass")
+                break;
+            case "decimal":
+                if (!this.currentNum.includes(".")) this.currentNum += ".";
+                this.updateDisplay(this.currentNum, "bypass")
         }
     }
 
-    updateDisplay() {
-        this.secondaryDisplay.textContent = this.storedNum + " " + this.currOperation;
-        this.mainDisplay.textContent = "0";
+    handleEquals() {
+        this.consecutiveOps = false;
+        if (this.consecutiveEquals) {
+            this.currentNum = String(this.operate(this.currentNum, this.temp));
+        } else {
+            if (this.currentNum === "") this.currentNum = this.storedNum;
+            this.temp = this.currentNum;
+            this.currentNum = String(this.operate(this.storedNum, this.currentNum));
+        }
+        this.consecutiveEquals = true;
+        if (this.errorDisplayed) return;
+        this.updateDisplay(this.currentNum, "none")
     }
 
-    operate() {
+    reset() {
+        this.currentNum = "";
+        this.currOperation = "";
+        this.storedNum = "";
+        this.consecutiveEquals = false;
+        this.consecutiveOps = false;
+        this.errorDisplayed = false;
+        this.temp = 0;
+    }
+
+    updateDisplay(mainContent="0", secondaryContent="none") {
+        switch (mainContent) {
+            case "bypass":
+                break;
+            case "":
+                this.mainDisplay.textContent = "0";
+                break;
+            case ".":
+                this.mainDisplay.textContent = "0.";
+                break;
+            case "-":
+                this.mainDisplay.textContent = "-";
+                break;
+            case "error":
+                this.mainDisplay.textContent = "Can't divide by 0";
+                break;
+            default:
+                if (mainContent.at(-1) === ".") {
+                    this.mainDisplay.textContent = Number(mainContent).toLocaleString('en-US') + ".";
+                } else if (mainContent.includes(".")) {
+                    const numSplit = mainContent.split(".");
+                    if (numSplit[1].length > 6) {
+                        numSplit[1] = numSplit[1].slice(0, 6);
+                        this.currentNum = numSplit.join(".");
+                    }
+                    this.mainDisplay.textContent = Number(mainContent).toLocaleString('en-US', { minimumFractionDigits: numSplit[1].length });
+                } else {
+                    this.mainDisplay.textContent = Number(mainContent).toLocaleString('en-US');
+                }
+        }
+        switch (secondaryContent) {
+            case "none":
+                this.secondaryDisplay.textContent = null;
+                break;
+            case "operation":
+                this.secondaryDisplay.textContent = Number(this.storedNum).toLocaleString('en-US', { maximumFractionDigits: 5 }) + " " + this.currOperation;
+                break;
+            case "bypass":
+                break;
+        }
+    }
+
+    operate(numA, numB) {
         switch (this.currOperation) {
             case "+":
-                return Number(this.storedNum) + Number(this.currentNum);
+                return Number(numA) + Number(numB);
             case "-":
-                return Number(this.storedNum) - Number(this.currentNum);
+                return Number(numA) - Number(numB);
             case "\u00d7":
-                return Number(this.storedNum) * Number(this.currentNum);
+                return Number(numA) * Number(numB);
             case "\u00F7":
-                return Number(this.storedNum) / Number(this.currentNum);
+                if (Number(numB) === 0) {
+                    this.errorDisplayed = true;
+                    this.updateDisplay("error");
+                    return "";
+                }
+                return Number(numA) / Number(numB);
         }
-        return this.currentNum;
+        return Number(numB);
     }
 }
 
